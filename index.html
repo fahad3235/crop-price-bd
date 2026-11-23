@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crop Price BD — ফসলের দাম বিডি</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap topbar-in">
+    <div>
+      <h1 data-i18n="appTitle">Crop Price BD</h1>
+      <p class="sub" data-i18n="appSub">Farm-gate crop prices, haat comparison &amp; break-even profit for Bangladeshi farmers</p>
+    </div>
+    <button id="langToggle" class="btn lang" type="button">বাংলা</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="stats" aria-label="Summary">
+    <div class="stat"><span class="num" id="stCrops">0</span><span class="lbl" data-i18n="statCrops">Crops tracked</span></div>
+    <div class="stat"><span class="num" id="stEntries">0</span><span class="lbl" data-i18n="statEntries">Price entries</span></div>
+    <div class="stat"><span class="num" id="stMarkets">0</span><span class="lbl" data-i18n="statMarkets">Markets</span></div>
+    <div class="stat"><span class="num" id="stDistricts">0</span><span class="lbl" data-i18n="statDistricts">Districts</span></div>
+    <div class="stat"><span class="num" id="stCosts">0</span><span class="lbl" data-i18n="statCosts">Cost records</span></div>
+    <div class="stat wide"><span class="lbl" data-i18n="bestPrice">Best price recorded</span><span class="val" id="stBest">—</span></div>
+    <div class="stat wide"><span class="lbl" data-i18n="worstPrice">Lowest price recorded</span><span class="val" id="stWorst">—</span></div>
+  </section>
+
+  <nav class="tabs" aria-label="Sections">
+    <button class="tab-btn active" data-tab="prices" type="button" data-i18n="tabPrices">Prices</button>
+    <button class="tab-btn" data-tab="compare" type="button" data-i18n="tabCompare">Compare</button>
+    <button class="tab-btn" data-tab="profit" type="button" data-i18n="tabProfit">Profit</button>
+    <button class="tab-btn" data-tab="data" type="button" data-i18n="tabData">Data</button>
+  </nav>
+
+  <section class="tab-pane active" id="tab-prices">
+    <form id="entryForm" class="panel" novalidate>
+      <h2 id="formTitle" data-i18n="addPrice">Add a price</h2>
+      <div class="grid">
+        <label><span data-i18n="crop">Crop</span>
+          <select id="fCrop"></select>
+          <span class="err" id="fErrCrop"></span>
+        </label>
+        <label id="fCustomCropWrap" style="display:none"><span data-i18n="cropOther">Other</span>
+          <input id="fCustomCrop" type="text" maxlength="40" autocomplete="off">
+        </label>
+        <label><span data-i18n="variety">Variety (optional)</span>
+          <input id="fVariety" type="text" maxlength="40" autocomplete="off">
+        </label>
+        <label><span data-i18n="market">Market / haat</span>
+          <input id="fMarket" type="text" maxlength="60" autocomplete="off" list="marketList">
+          <datalist id="marketList">
+            <option value="Naogaon Haat"></option><option value="Rajshahi Bazar"></option>
+            <option value="Faridpur Haat"></option><option value="Munshiganj Bazar"></option>
+            <option value="Pabna Haat"></option><option value="Bogura Bazar"></option>
+            <option value="Kawran Bazar"></option><option value="Chattogram Bazar"></option>
+          </datalist>
+          <span class="err" id="fErrMarket"></span>
+        </label>
+        <label><span data-i18n="district">District (optional)</span>
+          <input id="fDistrict" type="text" maxlength="60" autocomplete="off" list="districtList">
+          <datalist id="districtList">
+            <option value="Dhaka"></option><option value="Chattogram"></option><option value="Rajshahi"></option>
+            <option value="Khulna"></option><option value="Barishal"></option><option value="Sylhet"></option>
+            <option value="Rangpur"></option><option value="Mymensingh"></option><option value="Naogaon"></option>
+            <option value="Bogura"></option><option value="Pabna"></option><option value="Faridpur"></option>
+            <option value="Munshiganj"></option><option value="Cumilla"></option>
+          </datalist>
+        </label>
+        <label><span data-i18n="unit">Price unit</span>
+          <select id="fUnit">
+            <option value="maund" data-i18n="perMaund">per maund (40 kg)</option>
+            <option value="kg" data-i18n="perKg">per kg</option>
+          </select>
+        </label>
+        <label><span data-i18n="price">Price (whole ৳)</span>
+          <input id="fPrice" type="number" min="1" max="1000000" step="1" inputmode="numeric">
+          <span class="err" id="fErrPrice"></span>
+        </label>
+        <label><span data-i18n="date">Date</span>
+          <input id="fDate" type="date">
+          <span class="err" id="fErrDate"></span>
+        </label>
+        <label><span data-i18n="buyer">Buyer type</span>
+          <select id="fBuyer"></select>
+          <span class="err" id="fErrBuyer"></span>
+        </label>
+        <label class="full"><span data-i18n="notes">Notes (optional)</span>
+          <input id="fNotes" type="text" maxlength="200" autocomplete="off">
+          <span class="err" id="fErrNotes"></span>
+        </label>
+      </div>
+      <div class="row">
+        <button class="btn primary" type="submit" data-i18n="save">Save</button>
+        <button class="btn" type="button" id="entryCancel" data-i18n="cancel">Cancel</button>
+      </div>
+    </form>
+
+    <div class="filters panel">
+      <select id="fltCrop" aria-label="Filter by crop"></select>
+      <input id="fltMarket" type="text" data-i18n-ph="filterMarket" placeholder="Market…" autocomplete="off">
+      <input id="fltDistrict" type="text" data-i18n-ph="filterDistrict" placeholder="District…" autocomplete="off">
+      <select id="fltSort">
+        <option value="newest" data-i18n="sortNewest">Newest first</option>
+        <option value="oldest" data-i18n="sortOldest">Oldest first</option>
+        <option value="priceHigh" data-i18n="sortPriceHigh">Price (per kg) high → low</option>
+        <option value="priceLow" data-i18n="sortPriceLow">Price (per kg) low → high</option>
+        <option value="market" data-i18n="sortMarket">Market A → Z</option>
+      </select>
+    </div>
+
+    <div id="priceList" class="list"></div>
+  </section>
+
+  <section class="tab-pane" id="tab-compare">
+    <div id="compareList" class="list"></div>
+  </section>
+
+  <section class="tab-pane" id="tab-profit">
+    <form id="costForm" class="panel" novalidate>
+      <h2 id="costFormTitle" data-i18n="addCost">Add a production cost</h2>
+      <div class="grid">
+        <label><span data-i18n="crop">Crop</span>
+          <select id="cCrop"></select>
+          <span class="err" id="cErrCrop"></span>
+        </label>
+        <label id="cCustomCropWrap" style="display:none"><span data-i18n="cropOther">Other</span>
+          <input id="cCustomCrop" type="text" maxlength="40" autocomplete="off">
+        </label>
+        <label><span data-i18n="season">Season</span>
+          <select id="cSeason"></select>
+          <span class="err" id="cErrSeason"></span>
+        </label>
+        <label><span data-i18n="year">Year</span>
+          <input id="cYear" type="number" min="2000" max="2100" step="1" inputmode="numeric">
+          <span class="err" id="cErrYear"></span>
+        </label>
+        <label><span data-i18n="totalCost">Total cost per bigha (whole ৳)</span>
+          <input id="cTotal" type="number" min="1" max="100000000" step="1" inputmode="numeric">
+          <span class="err" id="cErrCost"></span>
+        </label>
+        <label><span data-i18n="yieldMaund">Yield per bigha (maunds)</span>
+          <input id="cYield" type="number" min="0.1" max="1000" step="0.1" inputmode="decimal">
+          <span class="err" id="cErrYield"></span>
+        </label>
+      </div>
+      <fieldset class="breakdown">
+        <legend data-i18n="breakdown">Cost breakdown (optional, whole ৳)</legend>
+        <div class="grid">
+          <label><span data-i18n="bdSeed">Seed</span><input id="bd-seed" type="number" min="0" step="1" inputmode="numeric"></label>
+          <label><span data-i18n="bdFertilizer">Fertilizer</span><input id="bd-fertilizer" type="number" min="0" step="1" inputmode="numeric"></label>
+          <label><span data-i18n="bdLabour">Labour</span><input id="bd-labour" type="number" min="0" step="1" inputmode="numeric"></label>
+          <label><span data-i18n="bdIrrigation">Irrigation</span><input id="bd-irrigation" type="number" min="0" step="1" inputmode="numeric"></label>
+          <label><span data-i18n="bdOther">Other</span><input id="bd-other" type="number" min="0" step="1" inputmode="numeric"></label>
+        </div>
+      </fieldset>
+      <div class="row">
+        <button class="btn primary" type="submit" data-i18n="save">Save</button>
+        <button class="btn" type="button" id="costCancel" data-i18n="cancel">Cancel</button>
+      </div>
+    </form>
+    <div id="costList" class="list"></div>
+  </section>
+
+  <section class="tab-pane" id="tab-data">
+    <div class="panel">
+      <h2 data-i18n="exportTitle">Export &amp; import</h2>
+      <div class="row">
+        <button class="btn primary" type="button" id="exportDl" data-i18n="exportBtn">Download JSON</button>
+        <button class="btn" type="button" id="exportCopy" data-i18n="exportCopy">Copy JSON</button>
+      </div>
+      <textarea id="importBox" rows="5" data-i18n-ph="importPlaceholder" placeholder="Paste exported JSON here…"></textarea>
+      <div class="row">
+        <button class="btn primary" type="button" id="importBtn" data-i18n="importBtn">Import JSON</button>
+      </div>
+      <span class="err" id="importErr"></span>
+    </div>
+
+    <div class="panel">
+      <h2 data-i18n="demoTitle">Demo data</h2>
+      <p class="muted" data-i18n="demoNote">Demo prices are clearly labelled and are illustrative samples only — not real market prices.</p>
+      <div class="row">
+        <button class="btn" type="button" id="demoLoad" data-i18n="demoLoad">Load demo prices</button>
+        <button class="btn" type="button" id="demoClear" data-i18n="demoClear">Clear demo data</button>
+      </div>
+    </div>
+
+    <div class="panel danger-zone">
+      <h2 data-i18n="eraseTitle">Erase everything</h2>
+      <p class="muted" data-i18n="eraseConfirm">Type DELETE to erase all prices and costs.</p>
+      <div class="row">
+        <input id="eraseBox" type="text" placeholder="DELETE" autocomplete="off" style="max-width:160px">
+        <button class="btn danger" type="button" id="eraseBtn" data-i18n="eraseBtn">Erase all data</button>
+      </div>
+      <span class="err" id="eraseErr"></span>
+    </div>
+  </section>
+
+  <footer>
+    <p data-i18n="footer">Personal offline notebook. Prices you enter are your own records — verify market rates before selling. 1 maund = 40 kg. Break-even figures are estimates from your own cost entries, not market advice.</p>
+  </footer>
+</main>
+
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/logic.js"></script>
+<script src="js/i18n.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
